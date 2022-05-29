@@ -37,7 +37,8 @@ public abstract class Downloader {
             }
         } catch (IOException e){
             System.err.println(e.getMessage());
-        } finally {
+        }
+        finally {
             try {
                 if(is != null)
                     is.close();

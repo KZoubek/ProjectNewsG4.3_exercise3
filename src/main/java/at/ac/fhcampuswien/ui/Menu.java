@@ -3,12 +3,18 @@ package at.ac.fhcampuswien.ui;
 import at.ac.fhcampuswien.controllers.AppController;
 import at.ac.fhcampuswien.downloader.ParallelDownloader;
 import at.ac.fhcampuswien.downloader.SequentialDownloader;
+import at.ac.fhcampuswien.exception.NewsApiException;
 import at.ac.fhcampuswien.models.Article;
+import at.ac.fhcampuswien.models.Source;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.*;
+import java.util.*;
+import java.util.function.*;
 
-//test
 public class Menu {
     private static final String INVALID_INPUT_MESSAGE = "No valid input. Try again";
     private static final String EXIT_MESSAGE = "Bye bye!";
@@ -27,14 +33,85 @@ public class Menu {
     }
 
     private void handleInput(String input){
-        switch (input) {
-            case "a" -> getTopHeadlinesAustria(controller);
-            case "b" -> getAllNewsBitcoin(controller);
-            case "y" -> getArticleCount(controller);
-            case "q" -> printExitMessage();
-            case "h" -> downloadURLs();
-            default -> printInvalidInputMessage();
+        try{
+            switch (input) {
+                case "a" -> getTopHeadlinesAustria(controller);
+                case "b" -> getAllNewsBitcoin(controller);
+                case "y" -> getArticleCount(controller);
+                case "q" -> printExitMessage();
+                case "c" -> getProviderWithMostArticles(controller);
+                case "d" -> getLongestAuthorName(controller);
+                case "e" -> countArticlesFronNYTimes(controller);
+                case "f" -> getArticleWithShortTitle(controller);
+                case "g" -> sortArticlesByContentLength(controller);
+                case "h" -> downloadURLs();
+                default -> printInvalidInputMessage();
+            }
+        } catch (NewsApiException ex){
+            System.out.println(ex.getMessage());
         }
+    }
+
+    private void sortArticlesByContentLength(AppController controller) throws NewsApiException {
+        if (controller.getArticles() == null) {
+            throw new NewsApiException("There are currently no articles");
+        }
+        Comparator<Article> compByLength = (a1, a2) -> (a1.getDescription().length() != a2.getDescription().length())
+                ? (a1.getDescription().length() - a2.getDescription().length()): a1.getDescription().compareTo(a2.getDescription());
+
+        System.out.println("The articles sorted by their length of description are given below:");
+        controller.getArticles().stream().sorted(compByLength).forEach(System.out::println);
+    }
+
+    private void getArticleWithShortTitle(AppController controller) throws NewsApiException {
+        if (controller.getArticles() == null) {
+            throw new NewsApiException("There are currently no articles");
+        }
+        List<Article> nyArticles =  controller.getArticles().stream().filter(a -> a.getTitle().length() < 15).collect(Collectors.toList());
+        System.out.println("The articles whose length is smaller than 15 characters are : ");
+        nyArticles.forEach(System.out::println);
+        System.out.println();
+    }
+
+    private void countArticlesFronNYTimes(AppController controller) throws NewsApiException {
+        if (controller.getArticles() == null) {
+            throw new NewsApiException("There are currently no articles");
+        }
+
+        Stream<Article> nyArticles =  controller.getArticles().stream().filter(a -> "New York Times".equals(a.getSource()));
+        System.out.println("The number of articles from NY times is : " + nyArticles.count());
+    }
+
+    private void getLongestAuthorName(AppController controller) throws NewsApiException {
+        if (controller.getArticles() == null) {
+            throw new NewsApiException("There are currently no articles");
+        }
+        Comparator<Article> longNameCmp = (a1, a2) ->
+                (a1.getAuthor() == null)  ? 0:
+                        (a2.getAuthor() == null) ? 1: a1.getAuthor().length() - a2.getAuthor().length();
+
+        String name = controller.getArticles().stream().max(longNameCmp).get().getAuthor();
+        System.out.println("The author with longest name is: " + name);
+    }
+
+    private void getProviderWithMostArticles(AppController controller) throws NewsApiException {
+        if (controller.getArticles() == null) {
+            throw new NewsApiException("There are currently no articles");
+        }
+
+        List<Article> articles = controller.getArticles();
+        List<Source> providers = articles.stream().map(Article::getSource).collect(Collectors.toList());
+
+        Map<Source, Long> map =  providers.stream().collect(
+                Collectors.groupingBy(
+                        Function.identity(),
+                        HashMap::new, // can be skipped
+                        Collectors.counting()
+                )
+        );
+
+        Source maxProvider = map.entrySet().stream().max((entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).get().getKey();
+        System.out.println("The provider with most frequency is: "+maxProvider.getName() );
     }
 
     // Method is needed for exercise 4 - ignore for exercise 2 solution
@@ -71,7 +148,7 @@ public class Menu {
     public static void printInvalidInputMessage(){
         System.out.println(INVALID_INPUT_MESSAGE);
     }
-    
+
     private static String getMenuText(){
         return """
                 *****************************

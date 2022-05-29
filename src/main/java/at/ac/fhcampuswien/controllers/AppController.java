@@ -48,8 +48,11 @@ public class AppController {
      */
     public List<Article> getTopHeadlinesAustria() {
         NewsApi api = new NewsApi("corona", Country.at, Endpoint.TOP_HEADLINES);
+//        NewsApi api = new NewsApi("corona", Country.us, Endpoint.TOP_HEADLINES);
         NewsResponse response = api.requestData();
 
+        // mk
+        System.out.println("getting data");
         if(response != null){
             articles = response.getArticles();
             return response.getArticles();

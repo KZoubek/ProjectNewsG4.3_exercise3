@@ -1,6 +1,7 @@
 package at.ac.fhcampuswien.api;
 
 import at.ac.fhcampuswien.enums.*;
+import at.ac.fhcampuswien.exception.NewsApiException;
 import at.ac.fhcampuswien.models.NewsResponse;
 import com.google.gson.Gson;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -9,6 +10,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.Objects;
 
 public class NewsApi {
@@ -16,7 +18,7 @@ public class NewsApi {
     private static final String URL = "https://newsapi.org/v2/%s?q=%s&apiKey=%s";
     private static final String API_KEY = Dotenv.load().get("API_TOKEN");   // read token from .env file -> add .env to .gitignore!!!
     private final OkHttpClient client;
-//test
+    //test
     private Endpoint endpoint;
     private String q;
     private String qInTitle;
@@ -163,14 +165,19 @@ public class NewsApi {
         try (Response response = client.newCall(request).execute()) {   // try with resources syntax
             Gson gson = new Gson();
             NewsResponse apiResponse = gson.fromJson(Objects.requireNonNull(response.body()).string(), NewsResponse.class); // parse the json response to NewsResponse
-            if(apiResponse.getStatus().equals("ok")){   // http status code ok - 200
+            if (apiResponse.getStatus().equals("ok")) {   // http status code ok - 200
                 return apiResponse;
             } else {
                 System.err.println(this.getClass() + ": http status not ok");
                 return null;
             }
-        } catch (IOException e) {
+        } catch (UnknownHostException ex){
+            Exception e = new  NewsApiException("host is not known. Check the hostname and the Internet connection");
             System.out.println(e.getMessage());
+            return null;
+        } catch (IOException e) {
+            Exception ex = new NewsApiException(e.getMessage());
+            System.out.println(ex.getMessage());
             return null;
         }
     }
