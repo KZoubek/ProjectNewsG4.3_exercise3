@@ -8,6 +8,7 @@ import at.ac.fhcampuswien.models.Article;
 import java.util.List;
 import java.util.Scanner;
 
+//test
 public class Menu {
     private static final String INVALID_INPUT_MESSAGE = "No valid input. Try again";
     private static final String EXIT_MESSAGE = "Bye bye!";
