@@ -9,7 +9,6 @@ import at.ac.fhcampuswien.models.Source;
 
 import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.*;
 import java.util.*;
@@ -41,7 +40,7 @@ public class Menu {
                 case "q" -> printExitMessage();
                 case "c" -> getProviderWithMostArticles(controller);
                 case "d" -> getLongestAuthorName(controller);
-                case "e" -> countArticlesFronNYTimes(controller);
+                case "e" -> countArticlesFromReuters(controller);
                 case "f" -> getArticleWithShortTitle(controller);
                 case "g" -> sortArticlesByContentLength(controller);
                 case "h" -> downloadURLs();
@@ -67,19 +66,18 @@ public class Menu {
         if (controller.getArticles() == null) {
             throw new NewsApiException("There are currently no articles");
         }
-        List<Article> nyArticles =  controller.getArticles().stream().filter(a -> a.getTitle().length() < 15).collect(Collectors.toList());
+        List<Article> reutersArticles =  controller.getArticles().stream().filter(a -> a.getTitle().length() < 15).collect(Collectors.toList());
         System.out.println("The articles whose length is smaller than 15 characters are : ");
-        nyArticles.forEach(System.out::println);
+        reutersArticles.forEach(System.out::println);
         System.out.println();
     }
 
-    private void countArticlesFronNYTimes(AppController controller) throws NewsApiException {
+    private void countArticlesFromReuters(AppController controller) throws NewsApiException {
         if (controller.getArticles() == null) {
             throw new NewsApiException("There are currently no articles");
         }
-
-        Stream<Article> nyArticles =  controller.getArticles().stream().filter(a -> "New York Times".equals(a.getSource()));
-        System.out.println("The number of articles from NY times is : " + nyArticles.count());
+        Stream<Article> reutersArticles = controller.getArticles().stream().filter(a -> "Reuters".equals(a.getSource().getName()));
+        System.out.println("The number of articles from Reuters is : " + reutersArticles.count());
     }
 
     private void getLongestAuthorName(AppController controller) throws NewsApiException {
@@ -161,7 +159,7 @@ public class Menu {
                 q: Quit program
                 c: Get provider with most articles
                 d: Get longest author name
-                e: Count articles from NY Times
+                e: Count articles from Reuters
                 f: Get articles with short title
                 g: Sort articles by content length
                 h: Download URLs
